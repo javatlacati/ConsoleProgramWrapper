@@ -5,9 +5,9 @@ package org.javapro;
  */
 public class ExitCode {
 
-  private int code;
-  private String message;
-  private boolean isError;
+  private final int code;
+  private final String message;
+  private final boolean isError;
 
   public ExitCode(int code, String message, boolean isError) {
     this.code = code;
