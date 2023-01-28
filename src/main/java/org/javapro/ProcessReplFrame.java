@@ -7,12 +7,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
@@ -188,40 +190,57 @@ public class ProcessReplFrame extends JFrame {
     }
 
   private static String getProcessPath(String[] args) {
-    String processPath = "";
+    Optional<String> processPath = Optional.empty();
+    Optional<ExitCode> exitCode = Optional.empty();
     if (args.length > 0) {
-      if (null == args[0]) {
-        System.err.println("unrecognized option");
-        System.exit(1);
-      } else
-        switch (args[0]) {
-          case "--help":
-            System.out.println("Usage:\n --help show this help\n --f specify process path");
-            System.exit(0);
-          case "--f":
-            processPath = args[1];
-            break;
-          default:
-            System.err.println("unrecognized option");
-            System.exit(1);
-        }
+      getProcessPathfromConsole(args, processPath, exitCode);
     } else {
-      int option =
-          JOptionPane.showConfirmDialog(
-              null, "is your program registered in PATH?", "", JOptionPane.YES_NO_OPTION);
-      if (option == JOptionPane.YES_OPTION) {
-        processPath =
-            JOptionPane.showInputDialog(null, "write the name of your process", "cmd.exe");
+      getProcessPathFromGui(processPath,exitCode);
+    }
+    if(!processPath.isPresent()){
+        exitCode = Optional.of(new ExitCode(2, "no file selected", true));
+    }
+    exitCode.ifPresent(ExitCode::performExit);
+    return processPath.orElse("");
+  }
+
+  private static void getProcessPathFromGui(
+      Optional<String> processPath, Optional<ExitCode> exitCode) {
+    int option =
+        JOptionPane.showConfirmDialog(
+            null, "is your program registered in PATH?", "", JOptionPane.YES_NO_OPTION);
+    if (option == JOptionPane.YES_OPTION) {
+      processPath =
+          Optional.ofNullable(
+              JOptionPane.showInputDialog(null, "write the name of your process", "cmd.exe"));
+    } else {
+      JFileChooser fileChooser = new JFileChooser();
+      if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+        processPath = Optional.ofNullable(fileChooser.getSelectedFile()).map(File::getAbsolutePath).filter(s -> !s.isEmpty());
       } else {
-        JFileChooser fileChooser = new JFileChooser();
-        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-          processPath = fileChooser.getSelectedFile().getAbsolutePath();
-        } else {
-          System.exit(2);
-        }
+        exitCode = Optional.of(new ExitCode(2, "no file selected", true));
       }
     }
-    return processPath;
+  }
+
+    private static void getProcessPathfromConsole(
+      String[] args, Optional<String> processPath, Optional<ExitCode> exitCode) {
+    if (null == args[0]) {
+      exitCode = Optional.of(new ExitCode(1, "unrecognized option", true));
+    } else
+      switch (args[0]) {
+        case "--help":
+          exitCode =
+              Optional.of(
+                  new ExitCode(
+                      0, "Usage:\n --help show this help\n --f specify process path", false));
+          break;
+        case "--f":
+          processPath = Optional.ofNullable(args[1]);
+          break;
+        default:
+          exitCode = Optional.of(new ExitCode(1, "unrecognized option", true));
+      }
   }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
