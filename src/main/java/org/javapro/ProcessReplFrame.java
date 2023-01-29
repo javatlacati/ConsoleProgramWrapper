@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -21,8 +23,10 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -93,12 +97,22 @@ public class ProcessReplFrame extends JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        txtAreaPopup = new JPopupMenu();
+        mnuClear = new JMenuItem();
         JScrollPane scrlTerminal = new JScrollPane();
         textArea = new JTextArea();
         JPanel commandsPanel = new JPanel();
         JLabel lbl1 = new JLabel();
         txtInput = new JTextField();
         JButton btnSendCommand = new JButton();
+
+        mnuClear.setText("Clear Console");
+        mnuClear.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                mnuClearActionPerformed(evt);
+            }
+        });
+        txtAreaPopup.add(mnuClear);
 
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setTitle(this.processName);
@@ -107,6 +121,11 @@ public class ProcessReplFrame extends JFrame {
         textArea.setEditable(false);
         textArea.setColumns(20);
         textArea.setRows(5);
+        textArea.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent evt) {
+                textAreaMouseClicked(evt);
+            }
+        });
         scrlTerminal.setViewportView(textArea);
 
         getContentPane().add(scrlTerminal, BorderLayout.CENTER);
@@ -143,6 +162,19 @@ public class ProcessReplFrame extends JFrame {
     private void txtInputActionPerformed(ActionEvent evt) {//GEN-FIRST:event_txtInputActionPerformed
         sendCommandToProcess();
     }//GEN-LAST:event_txtInputActionPerformed
+
+    private void textAreaMouseClicked(MouseEvent evt) {//GEN-FIRST:event_textAreaMouseClicked
+//        System.out.println("clicked button:" + evt.getButton());
+        if(evt.getButton()==3){
+            txtAreaPopup.setLocation(evt.getPoint());
+            txtAreaPopup.setVisible(true);
+        }
+    }//GEN-LAST:event_textAreaMouseClicked
+
+    private void mnuClearActionPerformed(ActionEvent evt) {//GEN-FIRST:event_mnuClearActionPerformed
+        textArea.setText(">");
+        txtAreaPopup.setVisible(false);
+    }//GEN-LAST:event_mnuClearActionPerformed
 
     private void sendCommandToProcess() {
         String line = txtInput.getText();
@@ -245,7 +277,9 @@ public class ProcessReplFrame extends JFrame {
   }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private JMenuItem mnuClear;
     private JTextArea textArea;
+    private JPopupMenu txtAreaPopup;
     private JTextField txtInput;
     // End of variables declaration//GEN-END:variables
 }
